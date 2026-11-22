@@ -996,7 +996,7 @@ async def cmd_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 async def handle_support(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if not await guard_user(update, context):
         return
-support_username = "Shyaian"
+    support_username = "Shyaian"
     text = (
         "💬 <b>Support</b>\n\n"
         f"👤 Contact: @{html.escape(support_username)}\n"
