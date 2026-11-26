@@ -3745,7 +3745,20 @@ async def post_init(app: Application) -> None:
 async def post_shutdown(app: Application) -> None:
     await close_db_pool()
 
+from flask import Flask
+from threading import Thread
 
+web = Flask(__name__)
+
+@web.route("/")
+def home():
+    return "SHYAIAN FILE STORE BOT IS LIVE!"
+
+def run_web():
+    port = int(os.environ.get("PORT", 10000))
+    web.run(host="0.0.0.0", port=port)
+
+Thread(target=run_web, daemon=True).start()
 def main() -> None:
     app = build_application()
     log.info("Starting TAHMID FILE STORE BOT...")
