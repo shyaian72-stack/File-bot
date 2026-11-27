@@ -2914,7 +2914,8 @@ async def conv_rm_expiry(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         context.user_data.pop(key, None)
 
     return ConversationHandler.END
-    async def cb_rm_list(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+
+async def cb_rm_list(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
     await query.answer()
 
@@ -2929,7 +2930,6 @@ async def conv_rm_expiry(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         text = "📋 No redeem codes yet."
     else:
         lines = ["📋 <b>Redeem Codes</b>\n"]
-
         for r in rows:
             lines.append(
                 f"🎟 <code>{r['code']}</code> — "
@@ -2937,13 +2937,12 @@ async def conv_rm_expiry(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
                 f"{r['used_count']}/{r['usage_limit'] or '∞'} used | "
                 f"{r['status']}"
             )
-
         text = "\n".join(lines)
 
     await query.edit_message_text(
         text,
         parse_mode=ParseMode.HTML,
-        reply_markup=back_button("ad:redeem")
+        reply_markup=back_button("ad:redeem"),
     )
 # =============================================================================
 # ADMIN: USER MANAGER
