@@ -2846,45 +2846,74 @@ async def conv_rm_limit(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
 async def conv_rm_expiry(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     text = update.message.text.strip()
     expiry_iso = None
+
     if text != "-":
         try:
-            expiry_iso = datetime.strptime(text, "%d-%m-%Y").isoformat()
+            expiry_iso = datetime.strptime(
+                text, "%d-%m-%Y"
+            ).isoformat()
         except ValueError:
-            await update.message.reply_text("❌ Invalid date format. Use DD-MM-YYYY or send -.")
+            await update.message.reply_text(
+                "❌ Invalid date format. Use DD-MM-YYYY or send -."
+            )
             return RM_EXPIRY
 
     d = context.user_data
+    required_keys = (
+        "rm_code", "rm_coins", "rm_premium", "rm_limit"
+    )
+
+    missing_keys = [key for key in required_keys if key not in d]
+
+    if missing_keys:
+        log.warning(
+            "Redeem Manager state missing for user %s: %s",
+            update.effective_user.id,
+            ", ".join(missing_keys),
+        )
+
+        for key in required_keys:
+            context.user_data.pop(key, None)
+
+        await update.message.reply_text(
+            "⚠️ Redeem setup data was lost. "
+            "Please open Admin Panel → Redeem Manager → "
+            "Create again and complete all steps."
+        )
+        return ConversationHandler.END
+
     async with db_conn() as db:
         await db.execute(
-            "INSERT INTO redeems (code, coin_reward, premium_days, usage_limit, expiry_date, status, created_by, created_at) "
+            "INSERT INTO redeems "
+            "(code, coin_reward, premium_days, usage_limit, "
+            "expiry_date, status, created_by, created_at) "
             "VALUES (?, ?, ?, ?, ?, 'active', ?, ?)",
-            (d["rm_code"], d["rm_coins"], d["rm_premium"], d["rm_limit"], expiry_iso,
-             update.effective_user.id, datetime.utcnow().isoformat()),
+            (
+                d["rm_code"],
+                d["rm_coins"],
+                d["rm_premium"],
+                d["rm_limit"],
+                expiry_iso,
+                update.effective_user.id,
+                datetime.utcnow().isoformat(),
+            ),
         )
         await db.commit()
 
     await update.message.reply_text(
-        f"✅ <b>Redeem Code Created!</b>\n\n🎟 Code: <code>{d['rm_code']}</code>\n💰 Coins: {d['rm_coins']}\n"
-        f"⭐ Premium Days: {d['rm_premium']}\n🔢 Usage Limit: {d['rm_limit'] or 'Unlimited'}\n"
+        f"✅ <b>Redeem Code Created!</b>\n\n"
+        f"🎟 Code: <code>{d['rm_code']}</code>\n"
+        f"💰 Coins: {d['rm_coins']}\n"
+        f"⭐ Premium Days: {d['rm_premium']}\n"
+        f"🔢 Usage Limit: {d['rm_limit'] or 'Unlimited'}\n"
         f"📅 Expiry: {text if text != '-' else 'Never'}",
         parse_mode=ParseMode.HTML,
     )
-    for k in ["rm_code", "rm_coins", "rm_premium", "rm_limit"]:
-        context.user_data.pop(k, None)
+
+    for key in required_keys:
+        context.user_data.pop(key, None)
+
     return ConversationHandler.END
-
-
-async def cb_rm_list(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    query = update.callback_query
-    await query.answer()
-    async with db_conn() as db:
-        db.row_factory = aiosqlite.Row
-        cur = await db.execute("SELECT * FROM redeems ORDER BY created_at DESC LIMIT 15")
-        rows = await cur.fetchall()
-    if not rows:
-        text = "📋 No redeem codes yet."
-    else:
-        lines = ["📋 <b>Redeem Codes</b>\n"]
         for r in rows:
             lines.append(
                 f"🎟 <code>{r['code']}</code> — {r['coin_reward']}🪙 | "
