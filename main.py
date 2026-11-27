@@ -2914,7 +2914,7 @@ async def conv_rm_expiry(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         context.user_data.pop(key, None)
 
     return ConversationHandler.END
-        async def cb_rm_list(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    async def cb_rm_list(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
     await query.answer()
 
