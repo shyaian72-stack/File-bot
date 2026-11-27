@@ -2562,9 +2562,10 @@ async def conv_wm_bulk_ids(update: Update, context: ContextTypes.DEFAULT_TYPE) -
                     resolved.append(row[0])
                 else:
                     not_found.append(tok)
-            elif tok.isdigit():
-                resolved.append(int(tok))
-            else:
+elif tok.isdigit() and int(tok) <= 9223372036854775807:
+    resolved.append(int(tok))
+else:
+    not_found.append(tok)
                 not_found.append(tok)
 
     if not resolved:
