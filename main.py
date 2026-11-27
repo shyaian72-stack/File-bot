@@ -3407,6 +3407,7 @@ async def cb_settings_field(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 async def conv_settings_value(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     key = context.user_data.pop("st_key")
     value = update.message.text.strip()
+async def conv_settings_value(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     key = context.user_data.pop("st_key", None)
 
     if key not in SETTINGS_FIELDS:
@@ -3417,6 +3418,10 @@ async def conv_settings_value(update: Update, context: ContextTypes.DEFAULT_TYPE
         return ConversationHandler.END
 
     value = update.message.text.strip()
+
+    if key == "coin_packages":
+        try:
+            parsed = json.loads(value)
             assert isinstance(parsed, list)
         except Exception:
             await update.message.reply_text(
@@ -3424,6 +3429,10 @@ async def conv_settings_value(update: Update, context: ContextTypes.DEFAULT_TYPE
             )
             context.user_data["st_key"] = key
             return ST_VALUE
+
+    await set_setting(key, value)
+    await update.message.reply_text("✅ Setting updated successfully.")
+    return ConversationHandler.END            return ST_VALUE
     await set_setting(key, value)
     await update.message.reply_text("✅ Setting updated successfully.")
     return ConversationHandler.END
