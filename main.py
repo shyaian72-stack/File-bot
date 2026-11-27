@@ -3407,9 +3407,16 @@ async def cb_settings_field(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 async def conv_settings_value(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     key = context.user_data.pop("st_key")
     value = update.message.text.strip()
-    if key == "coin_packages":
-        try:
-            parsed = json.loads(value)
+    key = context.user_data.pop("st_key", None)
+
+    if key not in SETTINGS_FIELDS:
+        await update.message.reply_text(
+            "⚠️ Settings session expired. "
+            "Please open Admin Panel → Settings and try again."
+        )
+        return ConversationHandler.END
+
+    value = update.message.text.strip()
             assert isinstance(parsed, list)
         except Exception:
             await update.message.reply_text(
