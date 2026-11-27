@@ -3432,7 +3432,7 @@ async def conv_settings_value(update: Update, context: ContextTypes.DEFAULT_TYPE
 
     await set_setting(key, value)
     await update.message.reply_text("✅ Setting updated successfully.")
-    return ConversationHandler.END            return ST_VALUE
+    return ConversationHandler.END
     await set_setting(key, value)
     await update.message.reply_text("✅ Setting updated successfully.")
     return ConversationHandler.END
