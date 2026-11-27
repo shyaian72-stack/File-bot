@@ -2560,19 +2560,22 @@ async def conv_wm_bulk_ids(update: Update, context: ContextTypes.DEFAULT_TYPE) -
                 row = await cur.fetchone()
                 if row:
                     resolved.append(row[0])
+        for tok in tokens:
+            if tok.startswith("@"):
+                uname = tok.lstrip("@")
+                cur = await db.execute(
+                    "SELECT user_id FROM users WHERE username=?",
+                    (uname,),
+                )
+                row = await cur.fetchone()
+                if row:
+                    resolved.append(row[0])
                 else:
                     not_found.append(tok)
-elif tok.isdigit() and int(tok) <= 9223372036854775807:
-    resolved.append(int(tok))
-else:
-    not_found.append(tok)
+            elif tok.isdigit() and int(tok) <= 9223372036854775807:
+                resolved.append(int(tok))
+            else:
                 not_found.append(tok)
-
-    if not resolved:
-        await update.message.reply_text(
-            "❌ None of those could be resolved to a real user. Check the IDs/usernames and try again."
-        )
-        return WB_IDS
 
     context.user_data["wb_ids"] = resolved
     msg = f"✅ Resolved <b>{len(resolved)}</b> users.\n\nWhat should be applied to all of them?"
